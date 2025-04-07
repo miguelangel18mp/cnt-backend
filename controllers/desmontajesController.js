@@ -53,7 +53,6 @@ const finalizarDesmontaje = (req, res) => {
     return res.status(400).json({ mensaje: 'Todos los campos de finalización son requeridos' });
   }
 
-  // Buscar el último desmontaje del usuario que no tenga campos de finalización
   const queryBuscar = `
     SELECT id FROM desmontajes
     WHERE creado_por = ? AND hora_fin IS NULL
@@ -80,7 +79,7 @@ const finalizarDesmontaje = (req, res) => {
 
     const valores = [latitud_fin, longitud_fin, hora_fin, foto_fin, desmontajeId];
 
-    db.query(sqlActualizar, valores, (err, resultado) => {
+    db.query(sqlActualizar, valores, (err) => {
       if (err) {
         console.error('❌ Error al finalizar desmontaje:', err);
         return res.status(500).json({ mensaje: 'Error al finalizar desmontaje' });
@@ -91,9 +90,29 @@ const finalizarDesmontaje = (req, res) => {
   });
 };
 
+// 📄 3. Obtener desmontajes (para administrador/bodeguero)
+const obtenerDesmontajes = (req, res) => {
+  const sql = `
+    SELECT d.*, u.nombre AS nombre_usuario
+    FROM desmontajes d
+    JOIN usuarios u ON d.creado_por = u.id
+    ORDER BY d.creado_en DESC
+  `;
+
+  db.query(sql, (err, resultados) => {
+    if (err) {
+      console.error('❌ Error al obtener desmontajes:', err);
+      return res.status(500).json({ mensaje: 'Error al obtener desmontajes' });
+    }
+
+    res.json(resultados);
+  });
+};
+
 module.exports = {
   registrarInicioDesmontaje,
-  finalizarDesmontaje
+  finalizarDesmontaje,
+  obtenerDesmontajes
 };
 
 
